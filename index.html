@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <title>To-do App</title>
+</head>
+<body>
+  <div class="min-h-screen flex items-center justify-center bg-emerald-400">
+    <div class="p-8 bg-white w-full max-w-lg rounded-2xl shadow-lg">
+      <h2 class="font-mono text-2xl font-bold text-center mb-6">To-Do List</h2>
+      
+      <!-- Input Area -->
+      <div class="flex items-center bg-gray-100 rounded-lg p-2 mb-4">
+        <input 
+          type="text" 
+          id="input" 
+          class="flex-1 bg-transparent outline-none px-3 py-2 text-base" 
+          placeholder="Add your task"
+        >
+        <button 
+          onclick="addTask()" 
+          class="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition">
+          Add
+        </button>
+      </div>
+
+      <!-- Task List -->
+      <ul class="text-base space-y-2" id="list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("input");
+    const list = document.getElementById("list");
+
+    // Load saved tasks on startup
+    window.onload = loadTasks;
+
+    function getTasks() {
+      return JSON.parse(localStorage.getItem("tasks")) || [];
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      if (input.value.trim() === "") {
+        alert("Please write something");
+        return;
+      }
+
+      let tasks = getTasks();
+      tasks.push({ text: input.value.trim(), done: false });
+      saveTasks(tasks);
+
+      renderTasks();
+      input.value = "";
+    }
+
+    function renderTasks() {
+      list.innerHTML = "";
+      let tasks = getTasks();
+
+      tasks.forEach((task, index) => {
+        let li = document.createElement("li");
+        li.className = "flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition";
+
+        // Task text
+        let span = document.createElement("span");
+        span.textContent = task.text;
+        span.className = "cursor-pointer flex-1 " + (task.done ? "line-through text-gray-400" : "");
+
+        // Toggle complete
+        span.onclick = function() {
+          tasks[index].done = !tasks[index].done;
+          saveTasks(tasks);
+          renderTasks();
+        };
+
+        // Buttons container
+        let actions = document.createElement("div");
+        actions.className = "flex space-x-2 ml-3";
+
+        // Edit button
+        let editBtn = document.createElement("button");
+        editBtn.textContent = "✏️";
+        editBtn.className = "text-blue-500 hover:text-blue-700";
+        editBtn.onclick = function() {
+          let newTask = prompt("Edit your task:", task.text);
+          if (newTask !== null && newTask.trim() !== "") {
+            tasks[index].text = newTask.trim();
+            saveTasks(tasks);
+            renderTasks();
+          }
+        };
+
+        // Delete button
+        let deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "❌";
+        deleteBtn.className = "text-red-500 hover:text-red-700";
+        deleteBtn.onclick = function() {
+          tasks.splice(index, 1);
+          saveTasks(tasks);
+          renderTasks();
+        };
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
+        li.appendChild(span);
+        li.appendChild(actions);
+        list.appendChild(li);
+      });
+    }
+
+    function loadTasks() {
+      renderTasks();
+    }
+  </script>
+</body>
+</html>
