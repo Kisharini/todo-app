@@ -8,6 +8,7 @@ This is a simple web application used to create a to-do list with basic operatio
 
 ## 📸 Demo / Preview
 [Live Demo](https://kisharini.github.io/todo-app/)
+[Preview Screenshot](image.png)
 
 ## 📦 Installation
 Clone the repo and install dependencies:
