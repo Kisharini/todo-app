@@ -25,6 +25,10 @@
           Add
         </button>
       </div>
+     
+     <div class="flex items-center bg-gray-100 rounded-lg p-2 mb-4">
+      <input type="text" name="search" id="searchBar" placeholder="Search a task..." class="flex-1 bg-transparent outline-none px-3 py-2 text-base" oninput="searchTasks()">
+     </div>
 
       <!-- Task List -->
       <ul class="text-base space-y-2" id="list"></ul>
@@ -34,6 +38,7 @@
   <script>
     const input = document.getElementById("input");
     const list = document.getElementById("list");
+    const searchBar = document.getElementById("searchBar");
 
     // Load saved tasks on startup
     window.onload = loadTasks;
@@ -46,6 +51,15 @@
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
 
+    function searchTasks(){
+       const query = searchBar.value.toLowerCase();
+       let alltasks = getTasks();
+
+       const filteredTasks = alltasks.filter(task => task.text.toLowerCase().includes(query));
+
+       renderTasks(filteredTasks);
+    }
+
     function addTask() {
       if (input.value.trim() === "") {
         alert("Please write something");
@@ -55,16 +69,18 @@
       let tasks = getTasks();
       tasks.push({ text: input.value.trim(), done: false });
       saveTasks(tasks);
-
+     
+      searchBar.value = "";
       renderTasks();
       input.value = "";
     }
 
-    function renderTasks() {
+    function renderTasks(tasksToRender) {
+      const allTasks = getTasks();
+      const currentTasks = tasksToRender || allTasks;
       list.innerHTML = "";
-      let tasks = getTasks();
 
-      tasks.forEach((task, index) => {
+      currentTasks.forEach((task, index) => {
         let li = document.createElement("li");
         li.className = "flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition";
 
@@ -73,11 +89,20 @@
         span.textContent = task.text;
         span.className = "cursor-pointer flex-1 " + (task.done ? "line-through text-gray-400" : "");
 
+        const actualIndex = allTasks.findIndex(t => t.text === task.text && t.done === task.done);
+
         // Toggle complete
         span.onclick = function() {
-          tasks[index].done = !tasks[index].done;
-          saveTasks(tasks);
-          renderTasks();
+          if (actualIndex > -1){
+            allTasks[actualIndex].done = !allTasks[actualIndex].done;
+            saveTasks(allTasks);
+
+            if (searchBar.value.trim() !== ""){
+              searchTasks();
+            } else {
+              renderTasks();
+            }
+          }
         };
 
         // Buttons container
@@ -89,12 +114,19 @@
         editBtn.textContent = "✏️";
         editBtn.className = "text-blue-500 hover:text-blue-700";
         editBtn.onclick = function() {
-          let newTask = prompt("Edit your task:", task.text);
-          if (newTask !== null && newTask.trim() !== "") {
-            tasks[index].text = newTask.trim();
-            saveTasks(tasks);
-            renderTasks();
+            if (actualIndex > -1){
+             let newTask = prompt("Edit your task:", allTasks[actualIndex].text);
+             if (newTask !== null && newTask.trim() !== ""){
+             allTasks[actualIndex].text = newTask.trim();
+             saveTasks(allTasks);
+
+            if (searchBar.value.trim() !== ""){
+              searchTasks();
+            } else {
+              renderTasks();
+            }
           }
+          }   
         };
 
         // Delete button
@@ -102,10 +134,17 @@
         deleteBtn.textContent = "❌";
         deleteBtn.className = "text-red-500 hover:text-red-700";
         deleteBtn.onclick = function() {
-          tasks.splice(index, 1);
-          saveTasks(tasks);
-          renderTasks();
-        };
+           if (actualIndex > -1){
+             allTasks.splice(actualIndex, 1);
+             saveTasks(allTasks);
+
+            if (searchBar.value.trim() !== ""){
+              searchTasks();
+            } else {
+              renderTasks();
+            }
+          }
+        }
 
         actions.appendChild(editBtn);
         actions.appendChild(deleteBtn);
@@ -122,3 +161,4 @@
   </script>
 </body>
 </html>
+
